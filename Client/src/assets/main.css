@@ -42,6 +42,7 @@ section {
 
 label, input {
   display: block;
+  width: 100%;
 }
 input {
   text-align: end;
