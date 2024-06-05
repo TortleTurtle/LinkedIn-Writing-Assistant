@@ -1,6 +1,7 @@
 <script setup>
 
 import {ref} from "vue";
+import ImportReadme from "@/assets/ImportReadme.vue";
 
 const form = defineModel('form');
 const linkedInPost = defineModel('linkedInPost');
@@ -40,6 +41,7 @@ const postQuestionnaire = async () => {
 <template>
   <section>
     <h1>LinkedIn Writing Assistant</h1>
+    <ImportReadme v-model:form="form"/>
     <div class="subsection">
       <h2>General information</h2>
       <p>First tell me some basics about your project to help me formulate questions.</p>
@@ -47,6 +49,8 @@ const postQuestionnaire = async () => {
       <input v-model="form.name" id="name" type="text">
       <label for="field">To what field does the project belong? I.E. web development or graphic design</label>
       <input v-model="form.field" id="field" type="text">
+      <label for="about">Give a quick description of the project.</label>
+      <textarea v-model="form.about" id="about"/>
       <button ref="fetchQuestionButton" @click="fetchAndParseQuestionnaire">
         Generate questions
       </button>
@@ -62,3 +66,10 @@ const postQuestionnaire = async () => {
     <button v-if="fetchedQuestionnaire" @click="postQuestionnaire">Generate Post</button>
   </section>
 </template>
+<style scoped>
+textarea {
+  margin-top: 0.5rem;
+  border: 2px solid var(--dark-green);
+  border-radius: 5px;
+}
+</style>

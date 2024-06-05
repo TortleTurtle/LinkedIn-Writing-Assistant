@@ -5,6 +5,7 @@ import Questionnaire from "@/assets/Questionnaire.vue";
 const form = reactive({
   name: "",
   field: "",
+  about: "",
   questionnaire: {},
 });
 
