@@ -13,9 +13,7 @@ const importReadme = async () => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: {
-      location: url.pathname //grab path
-    }
+    body:JSON.stringify({location : url.pathname}) //grab path
   });
   const data = await res.json();
 
