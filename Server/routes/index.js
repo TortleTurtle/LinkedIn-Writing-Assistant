@@ -98,7 +98,7 @@ const writePostPrompt = new PromptTemplate({
         "Imagine you're a professional copywriter specializing in social media posts. Your task is to craft a compelling LinkedIn post for a {field} project titled \"{name}\". The post should cover key aspects without using specific headings. Focus on creating engaging content that highlights the project's uniqueness, milestones, and impact.\n" +
         "\n" +
         "Use HTML to style the post, and remember to incorporate the information gathered during the interview to make the post authentic and captivating." +
-        "Return the post in the following JSON format: {{post: \"text\""
+        "Return the post in the following JSON format: {{post: \"text\"}}"
 });
 router.post('/writePost', async function (req,res){
     const {name, field, questionnaire} = req.body;
