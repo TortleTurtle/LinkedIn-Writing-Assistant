@@ -50,40 +50,41 @@ router.post('/readme', async function(req, res) {
 
 //Json template for openAI to format its response.
 const questionJsonFormat = {
-    headline: ["question1", "question2"],
-    introduction: ["question1", "question2"],
-    milestones: ["question1", "question2"],
-    impact: ["question1", "question2"],
+    headline: ["question"],
+    introduction: ["question"],
+    milestones: ["question"],
+    impact: ["question"],
 }
 const generateQuestionnairePrompt = new PromptTemplate({
-    inputVariables: ["field", "name"],
+    inputVariables: ["field", "name", "about"],
     template:
-        "You are a professional copy writer specialising in professional social media posts for individuals. You are hired to write a social media post about a {field} project {name} titled {name}. The post should contain the following information:\n" +
-        "\n" +
-        "[Headline][/Headline]\n" +
-        "[Introduction][/introduction]\n" +
-        "[Milestones][/Milestone]\n" +
-        "[Impact][/Impact]\n" +
-        "\n" +
-        "The [Headline][/Headline] should be attention grabbing and contain the project title \"{name}\"\n" +
-        "The [Introduction][/Introduction] introduce the projects and stakeholders involved.\n" +
-        "The [Milestones][/Milestones] section describe reached or planned milestones.\n" +
-        "The [Impact][/Impact] section describe the desired or achieved impact.\n" +
-        "\n" +
-        "To gain information to write the post you are interviewing your client. You already know the project title is {name}. What questions do you ask? Use this JSON format to format your response:\n." +
-        `{${JSON.stringify(questionJsonFormat)}}`
+        `You are a professional copy writer specialising in professional social media posts for individuals.
+        You are hired to write a social media post from the perspective of your client, about a {field} project titled {name}.
+        You have been provided the following project description:
+        {about}
+        
+        The post should have the following structure:
+        [Headline][/Headline] An attention grabbing headline containing the project title {name}
+        [Introduction][/introduction] A short description of the project and what it is about and involved stakeholders.
+        [Contribution][/Contribution] Personal contribution of the client to the project. Their tasks or achievements.
+        [Highlight][/Highlight] Personal highlight of the client experienced during the project, such as an overcome challenge or an enjoyable experience. 
+        
+        To gain the information to write the post you are setting up a interview with your client. Formulate questions for this interview based on the above requirements and project description.
+        Formulate 1 question per subject.
+        Use the following JSON format to format your response:
+        {${JSON.stringify(questionJsonFormat)}}`
 });
-router.get('/questions', async function(req, res ) {
-  const formattedPrompt = await generateQuestionnairePrompt.format({
-    name: req.query.name,
-    field: req.query.field
+router.post('/questions', async function(req, res ) {
+    console.log(req.body);
+    const formattedPrompt = await generateQuestionnairePrompt.format({
+      name: req.body.name,
+      field: req.body.field,
+      about: req.body.about
   });
 
   const messages = [
     new SystemMessage(formattedPrompt),
-  ]
-
-  console.log(messages);
+  ];
 
   const modelResponse = await model.invoke(messages);
   //get the json string and parse it. This cleans it up.
@@ -92,35 +93,35 @@ router.get('/questions', async function(req, res ) {
   res.json(questions);
 });
 
-const writePostPrompt = new PromptTemplate({
-    inputVariables: ["field", "name"],
-    template:
-        "Imagine you're a professional copywriter specializing in social media posts. Your task is to craft a compelling LinkedIn post for a {field} project titled \"{name}\". The post should cover key aspects without using specific headings. Focus on creating engaging content that highlights the project's uniqueness, milestones, and impact.\n" +
-        "\n" +
-        "Use HTML to style the post, and remember to incorporate the information gathered during the interview to make the post authentic and captivating." +
-        "Return the post in the following JSON format: {{post: \"text\"}}"
-});
+const writePostPrompt =
+        `You have finished conducting the interview. Use the project description and answers from the interview to write a social media post.
+        The post should be written from the perspective with the client. Cover key aspects without using specific headings.
+        Focus on creating engaging content that highlights the project's uniqueness, contribution of the client to the project and their highlights.
+        Use HTML to style the post, and remember to incorporate the information gathered during the interview to make the post authentic and captivating.
+        Return the post in the following JSON format:
+        {{"post": "text"}}`
+;
 router.post('/writePost', async function (req,res){
-    const {name, field, questionnaire} = req.body;
+    const {name, field, about, questionnaire} = req.body;
     const messages = [];
 
-    const formattedPrompt = await writePostPrompt.format({
-      name: name,
-      field: field,
+    const generateQuestionsPrompt = await generateQuestionnairePrompt.format({
+        name: name,
+        field: field,
+        about: about
     });
-    messages.push(new SystemMessage(formattedPrompt));
+    messages.push(new SystemMessage({content: generateQuestionsPrompt}));
+    messages.push(new SystemMessage({content: "You conducted the following interview:"}));
 
     //Add the questionnaire to the message. Pretend like it's a normal interview.
     for (let [category, questionsAndAnswers] in Object.entries(questionnaire)){
-        //add system message for category
-        messages.push(new SystemMessage(`[${category}]`));
         for (let item in questionsAndAnswers){
-            messages.push(new AIMessage(item.question));
-            messages.push(new HumanMessage(item.answer));
+            messages.push(new AIMessage({content: item.question}));
+            messages.push(new HumanMessage({content: item.answer}));
         }
-        //close category
-        messages.push(new SystemMessage(`[/${category}]`));
     }
+
+    messages.push(new SystemMessage(writePostPrompt));
 
     const modelResponse = await model.invoke(messages);
     const post = await JSON.parse(modelResponse.content);

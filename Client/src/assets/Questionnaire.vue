@@ -9,7 +9,13 @@ const fetchedQuestionnaire = ref(false);
 
 const fetchAndParseQuestionnaire = async () => {
   console.log("fetching")
-  const res = await fetch(`http://localhost:3000/questions?name=${form.name}&field=${form.field}`);
+  const res = await fetch(`http://localhost:3000/questions?`, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(form.value)
+  });
   const data = await res.json();
 
   console.log("transforming");
@@ -29,7 +35,7 @@ const postQuestionnaire = async () => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(form),
+    body: JSON.stringify(form.value),
   });
 
   const data = await res.json();

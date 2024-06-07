@@ -54,7 +54,7 @@ Analyse this README file to extract the name of the project, in what field the p
 #### V1
 ```text
 "You are a professional copy writer specialising in professional social media posts for individuals.
-You are hired to write a social media post about a {field} project {name} titled {name}.
+You are hired to write a social media post about a {field} project titled {name}.
 The post should contain the following information:
      
         [Headline][/Headline]
@@ -73,6 +73,25 @@ A problem that occurs is that questions appear that ask the same thing twice.
 Additionally, the prompt focuses on the project itself instead of highlighting the contributions and development of the developer.
 
 #### V2
+```text
+You are a professional copy writer specialising in professional social media posts for individuals.
+You are hired to write a social media post from the perspective of your client, about a {field} project titled {name}.
+You have been provided the following project description:
+{about}
+
+The post should have the following structure:
+[Headline][/Headline] An attention grabbing headline containing the project title {name}
+[Introduction][/introduction] A short description of the project and what it is about and involved stakeholders.
+[Contribution][/Contribution] Personal contribution of the client to the project. Their tasks or achievements.
+[Highlight][/Highlight] Personal highlight of the client experienced during the project, such as an overcome challenge or an enjoyable experience. 
+
+To gain the information to write the post you are setting up a interview with your client. Formulate questions for this interview based on the above requirements and project description.
+Formulate 1 question per subject.
+Use the following JSON format to format your response:
+{jsonFormat}
+```
+- Improved prompt so it's more focussed on the personal aspect.
+- Lowered amount of questions as the same question was repeated but formulated differently.
 
 ### Writing post
 This prompt is used to generate the actual post. The questions and answers are formatted as a conversation using the message roles provided by langchain.
@@ -86,6 +105,17 @@ Return the post in the following JSON format:
 
 Interview: //this is formatted as a conversation using roles
 ```
-The generated post feels more like an add than a personal message / post.
+- The generated post feels more like an add than a personal message / post.
+- Had to specify to not use the category headers i.e. Headline, Introduction, etc.
 
 #### V2
+```text
+//interview formatted using roles
+
+You have finished conducting the interview. Use the project description and answers from the interview to write a social media post.
+The post should be written from the perspective with the client. Cover key aspects without using specific headings.
+Focus on creating engaging content that highlights the project's uniqueness, contribution of the client to the project and their highlights.
+Use HTML to style the post, and remember to incorporate the information gathered during the interview to make the post authentic and captivating.
+Return the post in the following JSON format:
+{"post": "text"} 
+```
