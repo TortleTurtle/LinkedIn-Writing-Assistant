@@ -9,7 +9,7 @@ const fetchedQuestionnaire = ref(false);
 
 const fetchAndParseQuestionnaire = async () => {
   console.log("fetching")
-  const res = await fetch(`http://localhost:3000/questions?`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}questions?`, {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
@@ -30,7 +30,7 @@ const fetchAndParseQuestionnaire = async () => {
 
 const postQuestionnaire = async () => {
   console.log("posting");
-  const res = await fetch('http://localhost:3000/writePost', {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}writePost`, {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',

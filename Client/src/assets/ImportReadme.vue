@@ -8,7 +8,7 @@ const importReadme = async () => {
   //Using the node url object to grab the path from the url.
   const url = new URL(repoUrl.value);
 
-  const res = await fetch("http://localhost:3000/readme", {
+  const res = await fetch(`${import.meta.env.VITE_API_URL}readme`, {
     method: "POST",
     headers: {
       'Content-Type': 'application/json',
