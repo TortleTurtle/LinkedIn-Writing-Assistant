@@ -10,7 +10,7 @@ Clone the git repo:
 git clone https://github.com/TortleTurtle/LinkedIn-Writing-Assistant.git
 ```
 ### Server
-1. Navigate to `/LinkedIn-Writing-Assistant/Client`
+1. Navigate to `./LinkedIn-Writing-Assistant/Client`
 2. Create a `.env` file with the following information:
 ```
 OPENAI_API_TYPE=
@@ -21,20 +21,20 @@ DEPLOYMENT_NAME=
 ENGINE_NAME=
 INSTANCE_NAME=
 ```
-4. Run to install dependencies and start the express server:
+4. Install dependencies and start the express server:
 ```
 npm install
 npm run start
 ```
 Server will be live at `localhost:3000`
 ### Client
-1. open terminal in `/Client`
+1. Open a new terminal and navigate to `./LinkedIn-Writing-Assistant/Client`
 2. Run:
 ```
 npm install
 npm run preview
 ```
-The command will return a url to reach the local web server.
+The command will return an url to reach the local web server.
 
 ## Prompts
 ### Analysing README.md
@@ -119,3 +119,165 @@ Use HTML to style the post, and remember to incorporate the information gathered
 Return the post in the following JSON format:
 {"post": "text"} 
 ```
+## Script
+### Demo
+1. Extract information from a GitHub Readme file to partly fill in the form.
+2. Edit or manually enter, information.
+3. Generate questions based on this information.
+4. User fills in the questions.
+5. Generate a LinkedIn post.
+
+### Leerdoel 1 - 25 punten
+_Ik kan AI libraries en API’s toepassen in een professioneel ingerichte  javascript applicatie._
+#### Beginner
+Zoals te zien in de broncode bestaat de applicatie uit twee delen.
+Een Client wat gebruik maakt van Vue.js & een Server bestaand uit een Express API.
+API keys voor OpenAI zijn afgeschermd via een `.env` bestand:
+```js
+const model = new ChatOpenAI({
+    temperature: 0.5,
+    azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
+    azureOpenAIApiVersion: process.env.OPENAI_API_VERSION,
+    azureOpenAIApiInstanceName: process.env.INSTANCE_NAME,
+    azureOpenAIApiDeploymentName: process.env.ENGINE_NAME,
+})
+```
+#### Op Niveau
+De interface is al getoond tijdens de demo. De invoer van de gebruiker wordt gebruikt voor de [prompt](#generating-questions) om vragen te genereren.
+```js
+//prompt template
+const generateQuestionnairePrompt = new PromptTemplate({ 
+    inputVariables: ["field", "name", "about"],
+    template: "...",
+});
+
+// template being formatted in /questions URI.
+const formattedPrompt = await generateQuestionnairePrompt.format({
+    name: req.body.name,
+    field: req.body.field,
+    about: req.body.about
+});
+```
+Deze prompt geeft vragen terug gegenereerd door OpenAI. De antwoorden op deze vragen worden op hun beurt weer gebruikt
+om een chat history op te bouwen d.m.v. rollen hierover meer later.
+
+In de front-end wordt het maken van meerdere calls geblokkeerd door het `disabled` atribuut op knoppen te binden aan een reactive variable.
+Vue's versie van een React State. Door aan het begin van de method `isLoading` op `true` te zetten. Rerendert een knop met het dissabled attribuut,
+aan het einde wordt `isLoading` weer op `false` gezet om het attribuut te verwijderen. Dit worden gedaan voor alle methodes die requests maken naar de server.
+```vue
+<script setup>
+    const isLoading = ref(false);
+
+    const fetchAndParseQuestionnaire = async () => {
+      //set isLoading to true to disable button.
+      isLoading.value = true;
+      
+      /*
+      * fetching and formatting logic.
+      */
+
+      isLoading.value = false; //enable submit buttons.
+    }
+</script>
+<template>
+  <button ref="fetchQuestionButton" :disabled="isLoading" @click="fetchAndParseQuestionnaire">
+    Generate questions
+  </button>
+</template>
+```
+#### Expert
+Het prototype staat live op [dev.cheftags.nl](http://dev.cheftags.nl/). Het wordt gehost d.m.v. Nginx die de `index.html` 
+van de gebouwde Vue app served. Nginx is ook geconfigureerd om als 'reverse proxy' werken voor de Express server.
+Hierdoor worden requests naar `/api` doorgestuurd naar de express app i.p.v. de Vue app.
+
+### Leerdoel 2 - 15 punten
+_Ik kan werken met taalmodellen en de bijbehorende API’s in javascript._
+
+#### Beginner
+Een ChatLLM is een AI getraint met het doel conversaties te houden. Het verschilt van oude chatbots omdat het 'context aware' is
+en dus de context van een gesprek kan onthouden en gebruiken. LLM's zijn vooral goed in het transformeren & reduceren van teksten
+of het genereren van text, b.v. helpen met brainstormen. In mijn applicatie komen deze punten terug:
+- Reduceren wordt toegepast op de README van een GitHub repo en deze samenvatten naar een kleine 'about' sectie die in vervolg stappen weer gebruikt wordt.
+- Generen vindt plaats door het bedenken van vragen, met behulp van specifieke instructies.
+- Transformeren komt terug in dat de antwoorden op de vragen vervolgens omgevormd worden naar coherent stukje tekst, dit kan je ook deels zien als genereren.
+
+#### Op niveau
+Prompt engineering is het 'verfijnen' van prompts om betere resultaten te krijgen. Methoden van prompt engineering zijn bijvoorbeeld:
+- context toevoegen: rol van de AI en de opdracht.
+- specificeren: structuur van de respons en wat de inhoud moet zijn.
+- Toon & doelgroep: moet het informeel of formeel zijn, is het voor tieners of juist voor volwassen?
+
+In de prompt [generating questions](#generating-questions) is te zien hoe dit toegepast wordt. In v1 zijn al technieken al toegepast
+zoals **context** toevoegen door een rol te geven namelijk professional copy writer en de context van de opdracht; een post schrijven voor social media.
+Specificeren is gedaan door een structuur van de verwachte post mee te geven in de vorm van de [blocks]. De inhoud van deze blokken wordt ook weer gespecificeerd.
+
+In versie 2 is hierop geïtereerd door nog meer context toe te voegen, namelijk dat de post vanuit het perspectief van de client moet zijn
+en door een `about` stukje over het project toe te voegen.
+De instructies voor het generen van het interview zijn daarnaast gespecificeerd door uitdrukkend te zeggen dat de structuur en project omschrijving gebruikt moeten worden voor het generen van de vragen.
+
+**Toon** komt vooral terug in de prompt [writing post](#writing-post)
+
+### Leerdoel 3 - 15 punten
+_Ik kan op conceptueel niveau toepassingen voor AI bedenken en toelichte_
+#### Beginner
+De meerwaarde van deze applicatie is vooral voor mensen die niet goed zijn in teksten schrijven.
+Het moeilijkste van schrijven (in mijn ervaring) is bedenken *wat* precies in je tekst moet en vervolgens hoe je dit op een goede manier kan overbrengen.
+
+ChatGPT is hier echter goed of op zijn minst beter in dan de meeste mensen en kan je ook nog eens door het process begeleiden.
+Door specifieke prompt te schrijven genereert ChatGPT vragen die de gebruiken duidelijk te maken *wat* er in de post moet staan.
+Deze antwoorden kunnen vervolgens gebruikt worden om snel een concept post te generen die de gebruiker vervolgens kan overnemen en aanpassen.
+
+#### Op Niveau
+Zoals te zien in demo kan de applicatie gebruik maken van GitHub readme's. Hiervoor wordt de github API gebruikt.
+Om de content van een repository aan te spreken moet de URL opgebouwd zijn volgens deze 
+[documentatie](https://docs.github.com/en/rest/repos/contents?apiVersion=2022-11-28#get-repository-content)
+
+De gebruiker vult de link naar de repository in, de locatie, alles achter de eerste `/` wordt hieruit gepakt en verstuurd
+naar de server. Deze locatie wordt dan achter de base url. Er wordt ook `README.md` aan toegevoegd om het README bestand aan te spreken.
+```js
+router.post('/readme', async function(req, res) {
+    const { location } = req.body;
+
+    // Fetch README from GitHub using API.
+    const githubResponse = await fetch(`https://api.github.com/repos${location}/contents/README.md`, {
+        headers: {
+            "Accept": "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28"
+        }
+    });
+
+    const readmeData = await githubResponse.json();
+```
+
+Het readme bestand is `base64` geëncodeerd. Om het in een prompt te kunnen gebruiken moet het eerst gedecodeerd worden en
+vervolgens omgezet worden naar een string:
+
+```js
+    const readmeContent = Buffer.from(readmeData.content, 'base64').toString('utf-8');
+
+    // Perform prompt and get response.
+    const formattedPrompt = await analyseReadmePrompt.format({readme: readmeContent});
+    const messages = [new SystemMessage(formattedPrompt)];
+    const modelResponse = await model.invoke(messages);
+
+    // Return response.
+    res.json(JSON.parse(modelResponse.content));
+```
+De prompt template vraagt om bepaalde informatie uit de README te halen en terug te geven als JSON. De JSON response wordt
+geparsed om het op te schonen.
+
+### Leerdoel 4 - 5 punten
+_Ik kan zelfstandig documentatie bestuderen, toepassen en toelichten._
+
+#### Beginner
+Express:
+- [Post method](https://expressjs.com/en/5x/api.html#app.post.method)
+- [Respond JSON method](http://expressjs.com/en/5x/api.html#res.json)
+
+Node:
+- [URL object](https://nodejs.org/api/url.html)
+
+Langchain:
+- templates
+- chat history
+- roles
