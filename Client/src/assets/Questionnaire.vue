@@ -61,7 +61,7 @@ const postQuestionnaire = async () => {
       <input v-model="form.field" id="field" type="text">
       <label for="about">Give a quick description of the project.</label>
       <textarea v-model="form.about" id="about"/>
-      <button ref="fetchQuestionButton" @click="fetchAndParseQuestionnaire">
+      <button ref="fetchQuestionButton" :disabled="isLoading" @click="fetchAndParseQuestionnaire">
         Generate questions
       </button>
     </div>

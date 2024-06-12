@@ -75,12 +75,11 @@ const generateQuestionnairePrompt = new PromptTemplate({
         {${JSON.stringify(questionJsonFormat)}}`
 });
 router.post('/questions', async function(req, res ) {
-    console.log(req.body);
     const formattedPrompt = await generateQuestionnairePrompt.format({
       name: req.body.name,
       field: req.body.field,
       about: req.body.about
-  });
+    });
 
   const messages = [
     new SystemMessage(formattedPrompt),
