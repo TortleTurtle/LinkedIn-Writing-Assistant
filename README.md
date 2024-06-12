@@ -4,6 +4,11 @@ The writing assistant generates questions based on basic information such as the
 It can also extract this information from a GitHub Readme. The questions will focus on your contributions and goals so you can show off your skills to your network!
 After answering all the questions simply click generate post.
 
+## Table of content
+- [Installation](#installation)
+- [Prompts](#prompts)
+- [Script](#script)
+
 ## Installation
 Clone the git repo:
 ```
@@ -216,6 +221,21 @@ en door een `about` stukje over het project toe te voegen.
 De instructies voor het generen van het interview zijn daarnaast gespecificeerd door uitdrukkend te zeggen dat de structuur en project omschrijving gebruikt moeten worden voor het generen van de vragen.
 
 **Toon** komt vooral terug in de prompt [writing post](#writing-post)
+
+Een chat history wordt niet op de traditionele manier bijgehouden in de zin dat berichten 1 voor 1 worden verstuurd.
+In plaats daarvan creëer ik een chat history van de ingevulde vragen waardoor het lijkt alsof chatGPT een gesprek heeft gevoerd.
+Deze geschiedenis construeer ik met behulp van chat roles `AIMessage` & `HumanMessage`.
+```js
+//Add the questionnaire to the message. Pretend like it's a normal interview.
+for (let [category, questionsAndAnswers] in Object.entries(questionnaire)){
+    for (let item in questionsAndAnswers){
+        messages.push(new AIMessage({content: item.question}));
+        messages.push(new HumanMessage({content: item.answer}));
+    }
+}
+```
+Hiermee maak ik gebruik van ChatGPT's 'context awareness'. Het scheelt ook requests tussen client en server. Een nadeel is 
+dat ChatGPT niet het antwoord van de vorige vraag kan gebruiken voor de volgende vraag.
 
 ### Leerdoel 3 - 15 punten
 _Ik kan op conceptueel niveau toepassingen voor AI bedenken en toelichte_
