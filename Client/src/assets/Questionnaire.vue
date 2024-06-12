@@ -7,8 +7,11 @@ const form = defineModel('form');
 const linkedInPost = defineModel('linkedInPost');
 const fetchedQuestionnaire = ref(false);
 
+const isLoading = ref(false);
+
 const fetchAndParseQuestionnaire = async () => {
-  console.log("fetching")
+  //set isLoading to true to disable button.
+  isLoading.value = true;
   const res = await fetch(`${import.meta.env.VITE_API_URL}questions?`, {
     method: "POST",
     headers: {
@@ -18,18 +21,19 @@ const fetchAndParseQuestionnaire = async () => {
   });
   const data = await res.json();
 
-  console.log("transforming");
   //Transforms the array of questions into an array of objects [{question: ..., answer: ""}]
   const parsedData = {};
   for (const key in data) {
     parsedData[key] = data[key].map(question => ({question: question, answer: "" }));
   }
   form.value.questionnaire = parsedData;
-  fetchedQuestionnaire.value = true
+
+  isLoading.value = false; //enable submit buttons.
+  fetchedQuestionnaire.value = true; //render questionnaire.
 }
 
 const postQuestionnaire = async () => {
-  console.log("posting");
+  isLoading.value = true;
   const res = await fetch(`${import.meta.env.VITE_API_URL}writePost`, {
     method: "POST",
     headers: {
@@ -39,9 +43,9 @@ const postQuestionnaire = async () => {
   });
 
   const data = await res.json();
-  console.log(data);
   linkedInPost.value.content = data.post;
   linkedInPost.value.generatedPost = true;
+  isLoading.value = false;
 }
 </script>
 <template>
@@ -69,11 +73,15 @@ const postQuestionnaire = async () => {
         <input :id="`${category}.${index}`" v-model="item.answer" type="text"/>
       </div>
     </div>
-    <button v-if="fetchedQuestionnaire" @click="postQuestionnaire">Generate Post</button>
+    <button v-if="fetchedQuestionnaire" :disabled="isLoading" @click="postQuestionnaire">Generate Post</button>
   </section>
 </template>
 <style scoped>
+h1 {
+  color: var(--white);
+}
 textarea {
+  height: 10rem;
   margin-top: 0.5rem;
   border: 2px solid var(--dark-green);
   border-radius: 5px;
